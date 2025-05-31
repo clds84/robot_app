@@ -1,0 +1,46 @@
+<link rel="stylesheet" href="/static/style.css" />
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<script type="text/javascript">
+    const socket = io(); // assumes server is same origin
+
+    window.addEventListener("keydown", (e) => {
+        console.log("Key pressed:", e.key);
+        switch (e.key.toLowerCase()) {
+            case 'a': socket.emit('command', 'left'); break;
+            case 'w': socket.emit('command', 'forward'); break;
+            case 's': socket.emit('command', 'reverse'); break;
+            case 'd': socket.emit('command', 'right'); break;
+            case 'f': socket.emit('command', 'stop'); break;
+
+            case '1': socket.emit('command', 'motorSpeed100'); break;
+            case '2': socket.emit('command', 'motorSpeed95'); break;
+            case '3': socket.emit('command', 'motorSpeed90'); break;
+            case '4': socket.emit('command', 'motorSpeed85'); break;
+            case '5': socket.emit('command', 'motorSpeed80'); break;
+            case '6': socket.emit('command', 'motorSpeed75'); break;
+            case '7': socket.emit('command', 'motorSpeed70'); break;
+            case '8': socket.emit('command', 'motorSpeed65'); break;
+            case '9': socket.emit('command', 'motorSpeed60'); break;
+            case '0': socket.emit('command', 'motorSpeed55'); break;
+            case '-': socket.emit('command', 'motorSpeed50'); break;
+
+            case 'j': socket.emit('command', 'cameraLeft'); break;
+            case 'i': socket.emit('command', 'cameraUp'); break;
+            case 'k': socket.emit('command', 'cameraDown'); break;
+            case 'l': socket.emit('command', 'cameraRight'); break;
+            case 'n': socket.emit('command', 'cameraCenter'); break;
+        }
+    });
+
+    window.addEventListener("keyup", (e) => {
+        const moveKeys = ['a', 'd', 'w', 's'];
+        if (moveKeys.includes(e.key.toLowerCase())) {
+            socket.emit('command', 'stop');
+        }
+    });
+</script>
+
+<body style="background-color: black; margin: 0;">
+    <img id="video-stream" src="http://headless4.local:8080/stream.mjpg" width="640" height="480" />
+</body>
