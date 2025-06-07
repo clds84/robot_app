@@ -1,18 +1,63 @@
 <link rel="stylesheet" href="/static/style.css" />
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<style>
+    #video-stream {
+        width: 100%;
+        height: calc(100% - 25px);
+        display: block;
+    }
 
+    .neon {
+        color: #39ff14;
+        text-shadow: 0 0 5px #39ff14, 0 0 10px #39ff14;
+    }
+
+    .red {
+        color: #FF0000;
+        text-shadow: 0 0 5px #FF0000, 0 0 10px #FF0000;
+    }
+
+    .yellow {
+        color: #ffff00;
+        text-shadow: 0 0 5px #ffff00, 0 0 10px #ffff00;
+    }
+
+    .purple {
+        color: #bf00ff;
+    }
+
+    .amber {
+        color: #ffaa00;
+    }
+</style>
 <script type="text/javascript">
-    const socket = io(); // assumes server is same origin
+    const socket = io(); // Connects to server on same origin (no URL required)
+
+    // Battery reading from robot Pi
+    socket.on('battery_update', (data) => {
+        document.getElementById('battery-status').innerHTML = data.battery;
+        console.log("Got robot update", data);
+    });
+
+    // Battery reading from mission control
+    socket.on('battery_update_mc', (data) => {
+        const mcEl = document.getElementById('battery-status-mc')
+        if (mcEl) {
+            mcEl.innerHTML = data.battery;
+            console.log("Got mision control update:", data);
+        }
+    });
 
     window.addEventListener("keydown", (e) => {
         console.log("Key pressed:", e.key);
         switch (e.key.toLowerCase()) {
+            // ---------- Robot Movement Commands ------------
             case 'a': socket.emit('command', 'left'); break;
             case 'w': socket.emit('command', 'forward'); break;
             case 's': socket.emit('command', 'reverse'); break;
             case 'd': socket.emit('command', 'right'); break;
-            case 'f': socket.emit('command', 'stop'); break;
 
+            // ---------------- Robot Speed Control ----------------
             case '1': socket.emit('command', 'motorSpeed100'); break;
             case '2': socket.emit('command', 'motorSpeed95'); break;
             case '3': socket.emit('command', 'motorSpeed90'); break;
@@ -25,6 +70,7 @@
             case '0': socket.emit('command', 'motorSpeed55'); break;
             case '-': socket.emit('command', 'motorSpeed50'); break;
 
+            // ------------------ Camera Control ------------------
             case 'j': socket.emit('command', 'cameraLeft'); break;
             case 'i': socket.emit('command', 'cameraUp'); break;
             case 'k': socket.emit('command', 'cameraDown'); break;
@@ -41,6 +87,10 @@
     });
 </script>
 
-<body style="background-color: black; margin: 0;">
-    <img id="video-stream" src="http://headless4.local:8080/stream.mjpg" width="640" height="480" />
+<body style="background-color: black; margin: 0; border: 0px solid red;">
+    <img id="video-stream" src="http://headless4.local:8080/stream.mjpg" width="800" height="480" />
+    <div style="display: flex; justify-content: space-around; color: white; margin-top: 5px;">
+        <div id="battery-status" style="color: white;"></div>
+        <div id="battery-status-mc" style="color: white;"></div>
+    </div>
 </body>
