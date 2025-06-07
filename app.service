@@ -1,12 +1,13 @@
 [Unit]
 Description=Robot Script
-After=network.target
+After=network-online.target stream.service
+Wants=network-online.target
 
 [Service]
 ExecStart=/usr/bin/python3 %h/robot_app/app.py
 WorkingDirectory=%h/robot_app
-StandardOutput=inherit
-StandardError=inherit
+StandardOutput=journal
+StandardError=journal
 Restart=always
 
 [Install]
