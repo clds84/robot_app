@@ -39,7 +39,7 @@
         console.log("Got robot update", data);
     });
 
-    // Battery reading from mission control
+    // Battery reading from Mission Control
     socket.on('battery_update_mc', (data) => {
         const mcEl = document.getElementById('battery-status-mc')
         if (mcEl) {
