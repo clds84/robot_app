@@ -1,0 +1,20 @@
+[Unit]
+Description=NeoPixel Control Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/your_username/robot_app/neopixel_setup.py
+WorkingDirectory=/home/your_username/robot_app
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+KillSignal=SIGINT
+TimeoutStopSec=10
+
+# Run the service as root
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
