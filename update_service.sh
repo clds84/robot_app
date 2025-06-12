@@ -1,6 +1,6 @@
 #!/bin/bash
 
-files=("app.service" "stream.service" "display_stats.service")
+files=("app.service" "stream.service" "display_stats.service" "neopixel.service")
 target_dir="$HOME/.config/systemd/user"
 
 for f in "${files[@]}"; do
