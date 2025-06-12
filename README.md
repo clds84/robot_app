@@ -25,8 +25,6 @@ For my setup, the robot pairs with a dedicated **Mission Control** Pi that acts 
 13. [Code](#code)
 14. [Troubleshooting](#troubleshooting)
 
----
-
 ## 🔧 Setup (Overview)
 
 This project involves physical hardware, system services, and network setup. Use this section as a high-level checklist to guide your deployment.
@@ -84,8 +82,6 @@ This project involves physical hardware, system services, and network setup. Use
 - Emits battery sensor readings over sockets
 - Receives sensor input (e.g., Mission Control battery levels) over sockets (if using Mission Control client)
 
----
-
 ## Hardware
 
 - Raspberry Pi 4
@@ -99,8 +95,6 @@ This project involves physical hardware, system services, and network setup. Use
 - Adafruit I2C multiplexer
 - Small display HAT (for WiFi status and battery voltage)
 
----
-
 ## 3D Printed Parts
 
 Included `.stl` files for:
@@ -110,8 +104,6 @@ Included `.stl` files for:
 - Underbody chassis cover (motor protection)  
 
 > **Note:** The underbody is a quick solution for protection. It can be a little tedious to remove/install but functional.
-
----
 
 ## How to Build
 
@@ -124,8 +116,6 @@ Please refer to the included photos for build guidance. Since chassis types may 
 - You may need a **conical file** to widen mounting holes on the battery gauges or multiplexer to fit standoffs.
 - The **display HAT** might seem redundant since battery data is also shown in the web interface, but it’s useful for checking battery level before/after shutdown, or confirming WiFi connection with a button press.
 - **Power stacking**: The PowerBoost, battery gauges, and multiplexer stack cleanly using standoffs when aligned properly.
-
----
 
 ## System Overview
 
@@ -144,8 +134,6 @@ Please refer to the included photos for build guidance. Since chassis types may 
                                      [Camera + Stream]
                                      [NeoPixels, Battery Gauges]
 ```
-
----
 
 ## How to Use
 
@@ -182,8 +170,6 @@ These modules are part of Python 3 and do **not** require separate installation:
 - `Condition` (from `threading`)
 
 > These modules are included with any modern Python 3 installation.
-
----
 
 ### 📦 Dependencies to **Install** (Third-Party Packages)
 
@@ -232,7 +218,6 @@ After WiFi setup, the web interface will be properly served and `http://robot-ho
 > **Note:** Mission Control uses rotary encoders for all key down/up functionality below, except for the WASD keyboard layout for Forward-Left-Backward-Right, which follows an ortho-linear QWERTY layout. 
 
 The interface is minimal because Mission Control uses physical rotary encoders, not on-screen controls.
-
 
 #### Motor Movement
 - <kbd>W</kbd> – Move robot forward
