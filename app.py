@@ -3,7 +3,7 @@ import board
 import threading
 import logging
 from flask import Flask, render_template, request
-from flask_socketio import SocketIO, emit, send
+from flask_socketio import SocketIO, emit
 from adafruit_motorkit import MotorKit
 from adafruit_servokit import ServoKit
 import adafruit_max1704x
