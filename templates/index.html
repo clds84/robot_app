@@ -4,22 +4,22 @@
     #video-stream {
         width: 100%;
         height: calc(100% - 25px);
-        display: block;
+        display: block
     }
 
     .neon {
         color: #39ff14;
-        text-shadow: 0 0 5px #39ff14, 0 0 10px #39ff14;
+        text-shadow: 0 0 5px #39ff14, 0 0 10px #39ff14
     }
 
     .red {
         color: #FF0000;
-        text-shadow: 0 0 5px #FF0000, 0 0 10px #FF0000;
+        text-shadow: 0 0 5px #FF0000, 0 0 10px #FF0000
     }
 
     .yellow {
         color: #ffff00;
-        text-shadow: 0 0 5px #ffff00, 0 0 10px #ffff00;
+        text-shadow: 0 0 5px #ffff00, 0 0 10px #ffff00
     }
 
     .purple {
@@ -31,60 +31,77 @@
     }
 </style>
 <script type="text/javascript">
-    const socket = io(); // Connects to server on same origin (no URL required)
-
+    const socket = io() // Connects to server on same origin (no URL required)
+    const ledSocket = io('http://headless4.local:9000')
     // Battery reading from robot Pi
     socket.on('battery_update', (data) => {
-        document.getElementById('battery-status').innerHTML = data.battery;
-        console.log("Got robot update", data);
-    });
+        document.getElementById('battery-status').innerHTML = data.battery
+    })
 
     // Battery reading from Mission Control
     socket.on('battery_update_mc', (data) => {
         const mcEl = document.getElementById('battery-status-mc')
         if (mcEl) {
-            mcEl.innerHTML = data.battery;
-            console.log("Got mision control update:", data);
+            mcEl.innerHTML = data.battery
         }
-    });
+    })
 
     window.addEventListener("keydown", (e) => {
-        console.log("Key pressed:", e.key);
+        console.log("Key pressed:", e.key)
         switch (e.key.toLowerCase()) {
             // ---------- Robot Movement Commands ------------
-            case 'a': socket.emit('command', 'left'); break;
-            case 'w': socket.emit('command', 'forward'); break;
-            case 's': socket.emit('command', 'reverse'); break;
-            case 'd': socket.emit('command', 'right'); break;
+            case 'a': socket.emit('command', 'left'); break
+            case 'w': socket.emit('command', 'forward'); break
+            case 's': socket.emit('command', 'reverse'); break
+            case 'd': socket.emit('command', 'right'); break
 
             // ---------------- Robot Speed Control ----------------
-            case '1': socket.emit('command', 'motorSpeed100'); break;
-            case '2': socket.emit('command', 'motorSpeed95'); break;
-            case '3': socket.emit('command', 'motorSpeed90'); break;
-            case '4': socket.emit('command', 'motorSpeed85'); break;
-            case '5': socket.emit('command', 'motorSpeed80'); break;
-            case '6': socket.emit('command', 'motorSpeed75'); break;
-            case '7': socket.emit('command', 'motorSpeed70'); break;
-            case '8': socket.emit('command', 'motorSpeed65'); break;
-            case '9': socket.emit('command', 'motorSpeed60'); break;
-            case '0': socket.emit('command', 'motorSpeed55'); break;
-            case '-': socket.emit('command', 'motorSpeed50'); break;
+
+            case 'f': socket.emit('command', 'motorSpeedDefault'); break
+            case 'g': socket.emit('command', 'motorSpeedDecrease'); break
+            case 'h': socket.emit('command', 'motorSpeedIncrease'); break
 
             // ------------------ Camera Control ------------------
-            case 'j': socket.emit('command', 'cameraLeft'); break;
-            case 'i': socket.emit('command', 'cameraUp'); break;
-            case 'k': socket.emit('command', 'cameraDown'); break;
-            case 'l': socket.emit('command', 'cameraRight'); break;
-            case 'n': socket.emit('command', 'cameraCenter'); break;
+            case 'j': socket.emit('command', 'cameraLeft'); break
+            case 'i': socket.emit('command', 'cameraUp'); break
+            case 'k': socket.emit('command', 'cameraDown'); break
+            case 'l': socket.emit('command', 'cameraRight'); break
+            case 'n': socket.emit('command', 'cameraCenter'); break
+
+            // ------------------ LED Control ------------------
+            case 'z': ledSocket.emit('command', 'led_toggle_on_off'); break
+            case 'x': ledSocket.emit('command', 'led_brightness_decrease'); break
+            case 'c': ledSocket.emit('command', 'led_brightness_increase'); break
         }
-    });
+    })
 
     window.addEventListener("keyup", (e) => {
-        const moveKeys = ['a', 'd', 'w', 's'];
+        const moveKeys = ['a', 'd', 'w', 's']
         if (moveKeys.includes(e.key.toLowerCase())) {
-            socket.emit('command', 'stop');
+            socket.emit('command', 'stop')
         }
-    });
+    })
+
+    const checkRobotPageAndReload = async () => {
+        const robotUrl = "http://headless4.local:8000"
+        try {
+            const response = await fetch(robotUrl, { method: "GET", cache: "no-store" })
+            if (!response.ok) {
+                throw new Error("Robot page not reachable")
+            }
+            console.log("Robot is online, page is available.")
+        } catch (err) {
+            console.log("Robot not available yet. Retrying...")
+
+            // Retry after a delay
+            setTimeout(() => {
+                location.reload()
+            }, 3000)
+        }
+    }
+    window.addEventListener("load", () => {
+        checkRobotPageAndReload()
+    })
 </script>
 
 <body style="background-color: black; margin: 0; border: 0px solid red;">
