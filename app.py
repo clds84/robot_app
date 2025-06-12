@@ -1,3 +1,4 @@
+import os
 import board
 import threading
 import logging
@@ -38,7 +39,18 @@ motor_button_pressed = False
 motor_lock = threading.Lock()
 
 # Set up logging to file for troubleshooting
-logging.basicConfig(filename='app.log', level=logging.INFO)
+log_dir = 'logs'
+os.makedirs(log_dir, exist_ok=True)
+log_file = os.path.join(log_dir, 'app.log')
+print("Log file will be written to:", log_file)
+
+logging.basicConfig(
+    filename=log_file, 
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    force=True
+)
+
 logger = logging.getLogger(__name__)
 
 logger.info('Current motor speeds: %s, %s', motor3Speed, motor4Speed)
