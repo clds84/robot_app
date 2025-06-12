@@ -1,6 +1,6 @@
-# Robot Project (Work in Progress)
+# Robot Project
 
-This robot project is controlled via a client web interface served at `http://hostname.local:8000` using WebSockets. Using a hostname instead of an IP address makes it easy to connect, even through a mobile hotspot, when configuring or troubleshooting WiFi in the field.
+This robot project is controlled via a client web interface served at `http://robot-hostname.local:8000` using WebSockets. Using a hostname instead of an IP address makes it easy to connect, even through a mobile hotspot, when configuring or troubleshooting WiFi in the field.
 
 For my setup, the robot pairs with a dedicated **Mission Control** Pi that acts as a robot client app. It sends battery sensor readings (for its own display and the Pi) over sockets and opens the robot’s web interface in a browser for control via four rotary encoders and four key switches.
 
@@ -8,7 +8,69 @@ For my setup, the robot pairs with a dedicated **Mission Control** Pi that acts 
 
 > A regular laptop or desktop can also be used as a client if you don’t want to build Mission Control hardware.
 
+## 📑 Table of Contents
+
+1. [Setup (Overview)](#-setup-overview)
+2. [Features](#features)
+3. [Hardware](#hardware)
+4. [3D Printed Parts](#3d-printed-parts)
+5. [How to Build](#how-to-build)
+6. [System Overview](#system-overview)
+7. [How to Use](#how-to-use)
+8. [Dependencies](#-dependencies)
+9. [Service Files](#service-files---copy-in-system-and-user-services)
+10. [Powering On for Use](#powering-on-for-use)
+11. [Operating robot in a new environment](#operating-robot-in-a-new-environment)
+12. [Controls for Laptop or Desktop](#controls-for-laptop-or-desktop)
+13. [Code](#code)
+14. [Troubleshooting](#troubleshooting)
+
 ---
+
+## 🔧 Setup (Overview)
+
+This project involves physical hardware, system services, and network setup. Use this section as a high-level checklist to guide your deployment.
+
+1. **Assemble hardware**  
+  Wire up all components according to the parts list and included `.stl` files for 3D-printed mounts and protection.
+
+2. **Flash Raspberry Pi OS and configure WiFi**  
+  Set up the robot Pi headlessly using a mobile hotspot to enable SSH access and configure primary WiFi with `nmcli`.
+
+3. **Clone this repo and set up the environment**
+  ```bash
+  git clone https://github.com/clds84/robot_app
+  cd robot_app
+  python3 -m venv venv
+  source venv/bin/activate
+  pip install -r requirements.txt
+  ```
+4. **Copy services**
+
+    Copy `app.service, stream.service`, and `display_hat_stats.service` into `~/.config/systemd/user/` 
+    Copy `neopixel.service` into `/etc/systemd/system/` (must run as root)
+5. **Enable and start services**
+
+    For user-level services:
+    ```bash
+    systemctl --user enable app.service stream.service display_hat_stats.service
+    systemctl --user start app.service steam.service display_hat_stats.service
+    ```
+    For root-level service
+    ```bash
+    sudo systemctl enable neopixel.service
+    sudo systemctl start neopixel.service
+    ```
+6. **Power on devices**
+
+    Boot up both the robot Pi and the Mission Control Pi (if used).
+7. **Access the robot interface**
+
+    Open a browser and go to:
+    `http://robot-hostname.local:8000`
+8. **Operate the robot**
+
+    Use key controls with a Mission Control, laptop, or desktop described below to drive motors, control motor speed, adjust servos, toggle LEDs and control brightness.
 
 ## Features
 
@@ -47,11 +109,11 @@ Included `.stl` files for:
 - NeoPixel stick holders  
 - Underbody chassis cover (motor protection)  
 
-> **Note:** The underbody is as a quick solution for protection. It can be a little tedious to remove/install but functional.
+> **Note:** The underbody is a quick solution for protection. It can be a little tedious to remove/install but functional.
 
 ---
 
-## Getting Started with the Build
+## How to Build
 
 Please refer to the included photos for build guidance. Since chassis types may vary, I didn’t document the mechanical build step-by-step, but the photos will provide some insight. 
 
@@ -87,51 +149,120 @@ Please refer to the included photos for build guidance. Since chassis types may 
 
 ## How to Use
 
-Once powered on, the robot Pi automatically runs `app.py` and `stream.py` web interface at `http://robot-hostname.local:8000` through user services. SSH can be used to troubleshoot and is used to shutdown devices. Termius is a good mobile app for communication if out in the field. 
+> See below for setting up WiFi if not using a wired connection and for operating robot in WiFi environments
 
-New environment: first step after boot is to setup wifi. If running headless:
-- Make use of wifi script including `nmcli` commands. 
-- Use mobile hotspot for a temporary SSH session to setup the primary wifi in that environment.
-- Adjust wifi priority value with `nmcli connection modify <conncetion_name> connection.autoconnect-priority: <number>` (**Note:** higher value means higher priorty. This will avoid hiccups if the hotspot is still on and has a higher priority than the new WiFi connection.) 
+### (Optional) Use a Virtual Environment
 
-After WiFi setup, the web interface will be properly served and `http://robot-hostname.local:8000` will include the stream from `stream.py` and the battery gauge readings from the robot and Mission Control (if applicable) broadcast via WebSockets. The UI is designed primarily for Mission Control's 7" display, so it might feel light on a laptop or desktop. There is room for improving those use cases if preferred over Mission Control.
+To avoid polluting your system Python, use the following in robot_app/:
 
-Refer to the controls below in order to use a keyboard layout on a laptop or desktop. 
+```bash
+cd robot_app
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
-> **Note:** Mission Control uses rotary encoders for all functionality below, except for the ASDW keyboard layout, which follows a standard QWERTY layout. 
+### 🧰 Dependenciess
 
-### Physical Controls
+#### 📎 **Dependencies to **Import** (Python Standard Library – no installation needed)**
+
+These modules are part of Python 3 and do **not** require separate installation:
+
+- `os`
+- `sys`
+- `time`
+- `logging`
+- `signal`
+- `subprocess`
+- `io`
+- `threading`
+- `atexit`
+- `socketserver`
+- `http.server`
+- `Condition` (from `threading`)
+
+> These modules are included with any modern Python 3 installation.
+
+---
+
+### 📦 Dependencies to **Install** (Third-Party Packages)
+
+This project requires the following main Python packages, which are included in the requirements.txt file:
+
+- `flask`
+- `flask_socketio`
+- `Pillow` (for image manipulation, imported as `PIL`)
+- `adafruit-blinka`
+- `adafruit-circuitpython-motorkit`
+- `adafruit-circuitpython-servokit`
+- `adafruit-circuitpython-max1704x`
+- `adafruit-circuitpython-tca9548a`
+- `adafruit-circuitpython-rgb-display`
+- `adafruit-circuitpython-neopixel`
+- `picamera2` (may require additional OS-level setup)
+
+You can install these dependencies with:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Service Files - copy in system and user services
+
+`app.service, stream.service`, and `display_hat_stats.service` should be copied in `~/.config/systemd/user/`, however `neopixel.service` should be installed in `/etc/systemd/system/`because it has to be run as root. 
+
+> Run `update_service.sh` to copy the latest versions of all service files from this repo into the correct system/user directories.
+
+### Powering On for Use
+
+- Once the above steps have been completed, the robot Pi automatically runs `app.py` and `stream.py` web interface at `http://robot-hostname.local:8000` through user services. `neopixel_setup.py` runs as a separate service at root level as root privileges are required for it to work. **Note:** Do not name your file `neopixel.py` or it will conflict with the Adafruit NeoPixel module.
+- SSH can be used to troubleshoot and is used to shutdown devices. Termius is a good mobile app for communication if out in the field. 
+
+### Operating robot in a new environment
+
+- first step after boot is to setup WiFi. If running headless:
+  - Use mobile hotspot when flashing OS that will serve as a temporary SSH session when in the field in order to setup the primary WiFi in that environment.
+  - Make use of WiFi script including `nmcli` commands. 
+  - Once the WiFi script has been used, adjust WiFi priority value with `nmcli connection modify <connection_name> connection.autoconnect-priority: <number>` (**Note:** higher value means higher priority. This will avoid hiccups if the hotspot is still on and has a higher priority than the new WiFi connection.) 
+
+After WiFi setup, the web interface will be properly served and `http://robot-hostname.local:8000` will include the stream from `stream.py` and the battery gauge readings from the robot and Mission Control (if applicable) broadcast via WebSockets. The User Interface (UI) is designed primarily for Mission Control's 7" display, so it might feel light on a laptop or desktop. There is room for improving those use cases if preferred over Mission Control, including click events as an alternative to key down/up events. 
+
+### Controls for Laptop or Desktop
+
+> **Note:** Mission Control uses rotary encoders for all key down/up functionality below, except for the WASD keyboard layout for Forward-Left-Backward-Right, which follows an ortho-linear QWERTY layout. 
+
+The interface is minimal because Mission Control uses physical rotary encoders, not on-screen controls.
+
 
 #### Motor Movement
-- **Key A** – Turn robot left
-- **Key S** – Move robot in reverse
-- **Key D** – Turn robot right
-- **Key W** – Move robot forward
+- <kbd>W</kbd> – Move robot forward
+- <kbd>A</kbd> – Turn robot left
+- <kbd>S</kbd> – Move robot in reverse
+- <kbd>D</kbd> – Turn robot right
+- <kbd>W</kbd> – Move robot forward
 
-##### Camera Movement
-- **Key J** – Rotate camera left
-- **Key L** – Rotate camera right
-- **Key I** – Tilt camera up
-- **Key K** – Tilt camera down
-- **Key N** – Reset camera to center position.
+#### Camera Movement
+- <kbd>J</kbd> – Rotate camera left
+- <kbd>L</kbd> – Rotate camera right
+- <kbd>I</kbd> – Tilt camera up
+- <kbd>K</kbd> – Tilt camera down
+- <kbd>N</kbd> – Reset camera to center position.
 
 #### LED Control
-- **Key Switch Z** – Toggle LED strip
-- **Key Switch X** - Decrease LED strip brightness
-- **Key Switch C** - Increase LED strip brightness
+- <kbd>Z</kbd> – Toggle LED strip
+- <kbd>X</kbd> - Decrease LED strip brightness
+- <kbd>C</kbd> - Increase LED strip brightness
 
 #### Speed Control
-- **Key Switch F** – Toggle motor speed range
-- **Key Switch G** - Decrease motor speed
-- **Key Switch H** - Increase motor speed
+- <kbd>F</kbd> – Toggle motor speed range
+- <kbd>G</kbd> - Decrease motor speed
+- <kbd>H</kbd> - Increase motor speed
 
 ### Code
 
-Install dependecies as needed.
+- The Logic for interpreting control inputs and sending data is located in `app.py`.
 
-The Logic for interpreting control inputs and sending data is located in `app.py`.
-
-Sensor readings from Mission Control’s battery gauges are sent to the robot in real-time via WebSocket. To avoid errors when a Mission Control client is not used, there is a conditional check in `templates/index.html`:
+- Sensor readings from Mission Control’s battery gauges are sent to the robot in real-time via WebSocket. To avoid errors when a Mission Control client is not used, there is a conditional check in `templates/index.html`:
 
 ```
 // Battery reading from Mission Control
@@ -144,8 +275,8 @@ socket.on('battery_update_mc', (data) => {
 });
 ```
 
-Copy `app.service, stream.service`, and `display_stats.service` to `~/.config/systemd/user`, and run `update_service.sh` whenever changes are made in the user services directory to keep the repo updated with those changes.
+- Depending on your use case, you may want to adjust the camera resolution (`width` x `height` in `picam2.configure(...)`) and the `<img>` element dimensions in the HTML (`width`x `height` attributes) accordingly.
 
-Depending on your use case, you may want to adjust the camera resolution (`width` x `height` in `picam2.configure(...)`) and the `<img>` element dimensions in the HTML (`width`x `height` attributes) accordingly.
+- For debugging or to check events in realtime, use app.log and neopixel.log that will be created in `robot_app/logs/` when services run. Make sure to uncomment lines such as: `logger.info('Current motor speeds: %s, %s', motor3Speed, motor4Speed)`
 
-
+### Troubleshooting
