@@ -1,0 +1,14 @@
+[Unit]
+Description=Display WiFi and Battery Stats
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python3 %h/robot_app/display_stats.py
+WorkingDirectory=%h/robot_app
+StandardOutput=journal
+StandardError=journal
+Restart=always
+
+[Install]
+WantedBy=default.target
