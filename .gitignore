@@ -2,6 +2,5 @@ app_backup.py
 app.log
 logs/
 venv/
-images/
 __pycache__
 __pycache__.code-workspace

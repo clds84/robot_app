@@ -1,4 +1,7 @@
 # Robot Project
+<p align= "center" style="margin: 30px">
+<img src="images/IMG_1.jpg" alt="alt text" width="600"/>
+</p>
 
 This robot project is controlled via a client web interface served at `http://robot-hostname.local:8000` using WebSockets. Using a hostname instead of an IP address makes it easy to connect, even through a mobile hotspot, when configuring or troubleshooting WiFi in the field.
 
@@ -84,16 +87,18 @@ This project involves physical hardware, system services, and network setup. Use
 
 ## Hardware
 
-- Raspberry Pi 4
-- Adafruit DC Motor + Servo HAT
-- Pi Camera with pan/tilt servo bracket
-- 4 DC motors (one per wheel)
-- 2 servo motors (for X and Y axes)
-- 2 Adafruit NeoPixel sticks
-- Adafruit PowerBoost charger (for LiPo battery)
-- 2 Adafruit battery gauge monitors
-- Adafruit I2C multiplexer
-- Small display HAT (for WiFi status and battery voltage)
+- [Raspberry Pi 4]()
+- [Adafruit DC Motor HAT]()
+- [Adafruit Servo HAT]()
+- [Pi Camera]()
+- [Pan/tilt servo bracket]()
+- [2 DC motors (one per side)]()
+- [2 servo motors (for X and Y axes)]()
+- [2 Adafruit NeoPixel sticks]()
+- [2 Adafruit PowerBoost chargers (for Lithium Polymer (LiPo) battery)]()
+- [2 Adafruit battery gauge monitors]()
+- [Adafruit I2C multiplexer]()
+- [Adafruit display HAT (for WiFi status and battery voltage)](https://www.adafruit.com/product/4393?gad_source=1&gad_campaignid=21079227318&gbraid=0AAAAADx9JvRDay4yWQW0YeAwewaAP5-il&gclid=CjwKCAjw9anCBhAWEiwAqBJ-c-nwN4CdOir3CDpunkb8d08L5X6cP68mcPEqfggrbiRtG0R4XL0BXRoCufMQAvD_BwE)
 
 ## 3D Printed Parts
 
@@ -116,6 +121,75 @@ Please refer to the included photos for build guidance. Since chassis types may 
 - You may need a **conical file** to widen mounting holes on the battery gauges or multiplexer to fit standoffs.
 - The **display HAT** might seem redundant since battery data is also shown in the web interface, but it’s useful for checking battery level before/after shutdown, or confirming WiFi connection with a button press.
 - **Power stacking**: The PowerBoost, battery gauges, and multiplexer stack cleanly using standoffs when aligned properly.
+
+---
+
+### Back Right 
+<img id="img2" src="images/IMG_2.jpg" alt="alt text" width="600" />
+
+This image shows the Display HAT stacked on the servo HAT, which is on top of the DC motor HAT, all mounted on the Raspberry Pi.  Other connection points for servo power, the display HAT, and the Pi power, are shown more clearly in later images. 
+
+The six wires, two per DC motor, plus one for power and one for ground, run down straight down under the chassis. 
+
+The **servo 1 & 2 wires** in the top right of the image come from the servo motors and are also shown more clearly in later images. The headers on this side of the servo HAT correspond to the 16-channel servo layout, and each row includes power, ground, and signal.
+
+The camera ribbon runs through a slit in both the dc motor and servo HATs. 
+
+---
+
+### Multiplexer/Battery Gauge/Powerboost Stack
+<img id="img3" src="images/IMG_3.jpg" alt="alt text" width="600" />
+
+This image shows:
+  - Toggle switches for pi
+  - Multiplexer
+  - Battery gauges
+  - Pi PowerBoost
+  - Servo PowerBoost
+  
+  The power and ground wires for the DC motor ([motor wires](#back-right)) are connected to the motor toggle switch under the chassis. The toggle switches for the Pi and servo will be mentioned again.
+
+---
+
+### Top Left
+<img src="images/IMG_4.jpg" alt="alt text" width="600" />
+
+The wires identified in this image are for:
+  - NeoPixel 1 and 2 
+  - Servo 1 and 2
+
+Each Neopixel has a power, ground, and signal wire connected to the headesr on the servo HAT which correspond to the Pi's GPIO layout. The signal wire for NeoPixel 1 is connected to D21 and the one for NeoPixel 2 is connected to D12.
+
+The wires for NeoPixel 2 will be mentioned again in a later image.
+
+---
+### Side View 
+<img src="images/IMG_5.jpg" alt="alt text" width="600" />
+
+Connect the LiPo JST connector to the battery gauge, then a JST cable from the battery gauge to the PowerBoost (these are the steps per battery gauge/PowerBoost combo).
+
+---
+
+<img src="images/IMG_6.jpg" alt="alt text" width="600" />
+
+Wires identified for:
+  - Neopixel 2 [NeoPixel connection on HAT](#top-left)
+  - Servo power ([Servo power](#back-right)) - use 5v and GND pins
+  - PowerBoosts - use EN & GND pins
+
+For aesthetic purposes, 90-degree headers are soldered to the bottom of each PowerBoost, facing inward toward the midline.
+
+> **Note:** The EN and GND pins used for each PowerBoost (Pi and servo) run under the chassis and connect to the Pi and servo toggle switches. The difference between these and the motor switch is that the motor switch does not utilize a PowerBoost; instead, it enables power directly from the LiPo to the DC motor HAT, with no intermediary connections to be made. However, for the Pi and servo, the EN and GND will result in a LOW reading when the toggle switch is operated, and that will allow power from LiPo -> PowerBoost -> Pi/servo. The reason for doing this is to control the HIGH position when not using the robot and/or charging the LiPo batteries. If the toggle switch is in an OFF position, the PowerBoosts will not transfer voltage to the servo Hat or the Pi. However, the PowerBoosts will be operational for charging, via headers or the micro-usb port.
+
+---
+
+### Front Right
+<img src="images/IMG_7.jpg" alt="alt text" width="600" />
+
+Short QT Stemma connectors are used here to connect the battery gauges to the multiplexer. 
+
+---
+
 
 ## System Overview
 
